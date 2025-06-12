@@ -1,6 +1,6 @@
-use actix_web::{HttpResponse, Responder, get};
+use actix_web::{Responder, get};
 
-#[get("/api/orders")]
+#[get("/orders")]
 pub async fn get_orders() -> impl Responder {
-    HttpResponse::Ok().body("API đang sống nè!")
+    "Danh sách orders"
 }
