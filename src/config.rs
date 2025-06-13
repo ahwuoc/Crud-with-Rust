@@ -8,7 +8,7 @@ pub async fn get_database_pool() -> MySqlPool {
     println!("✅ Load database URL: {}", database_url);
     match MySqlPool::connect(&database_url).await {
         Ok(pool) => {
-            print!("Kết nối DB thành công");
+            println!("Kết nối DB thành công");
             return pool;
         }
         Err(e) => {
