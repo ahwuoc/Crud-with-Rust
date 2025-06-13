@@ -1,16 +1,14 @@
 use actix_web::{HttpResponse, Responder, get, post, web};
 use bcrypt::{DEFAULT_COST, hash};
-use serde::Deserialize;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::MySqlPool;
-
-#[derive(Serialize, sqlx::FromRow)]
+#[derive(Serialize, sqlx::FromRow, Debug)]
 struct User {
     id: i64,
     email: String,
 }
 #[derive(Deserialize, Debug)]
-pub struct UserInput {
+struct CreateUser {
     email: String,
     password: String,
 }
@@ -23,13 +21,15 @@ pub async fn get_users(pool: web::Data<MySqlPool>) -> impl Responder {
         Ok(user) => HttpResponse::Ok().json(user),
         Err(e) => {
             eprintln!("Lỗi khi truy vấn users: {}", e);
-            actix_web::HttpResponse::InternalServerError().body("Lỗi khi lấy danh sách users")
+            HttpResponse::InternalServerError().body("Lỗi khi lấy danh sách users")
         }
     }
 }
 #[post("/users")]
-pub async fn create_user(pool: web::Data<MySqlPool>, user: web::Json<UserInput>) -> impl Responder {
-    println!("Data server gửi lên {:?}", &user);
+pub async fn create_user(
+    pool: web::Data<MySqlPool>,
+    user: web::Json<CreateUser>,
+) -> impl Responder {
     if user.email.is_empty() || !user.email.contains('@') {
         return HttpResponse::BadRequest().body("Email không hợp lệ");
     }
@@ -50,7 +50,6 @@ pub async fn create_user(pool: web::Data<MySqlPool>, user: web::Json<UserInput>)
     )
     .execute(&**pool)
     .await;
-
     match result {
         Ok(res) => {
             if res.rows_affected() > 0 {
@@ -61,7 +60,7 @@ pub async fn create_user(pool: web::Data<MySqlPool>, user: web::Json<UserInput>)
         }
         Err(e) => {
             eprintln!("Lỗi khi tạo user: {}", e);
-            HttpResponse::Conflict().body("Email đã tồn tại hoặc lỗi khi tạo user")
+            HttpResponse::Conflict().body("Email đã tồn tại hoặc lỗi khi tạo     user")
         }
     }
 }
