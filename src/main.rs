@@ -1,33 +1,33 @@
 mod config;
 mod routes;
 use crate::config::get_database_pool;
-use crate::routes::orders::get_orders;
-use crate::routes::users::{create_user, get_users};
+use crate::routes::orders::config_orders;
+use crate::routes::products::config_products;
+use crate::routes::users::config_users;
 use actix_web::{App, HttpServer, web};
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // this is function get pool for database
     let pool = get_database_pool().await;
-    let host = "127.0.0.1";
-    let port = 3000;
-
+    const HOST: &str = "127.0.0.1";
+    const PORT: u16 = 3000;
     let server = HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
-            .service(get_orders)
-            .service(get_users)
-            .service(create_user)
+            .configure(config_users)
+            .configure(config_products)
+            .configure(config_orders)
     })
-    .bind((host, port));
+    .bind((HOST, PORT));
     match server {
         Ok(server) => {
-            println!("🚀 Server running at http://{}:{}", host, port);
+            println!("🚀 Server running at http://{}:{}", HOST, PORT);
             server.run().await
         }
         Err(e) => {
             eprintln!(
                 "❌ Failed to bind server to http://{}:{}: {}",
-                host, port, e
+                HOST, PORT, e
             );
             Err(e)
         }
